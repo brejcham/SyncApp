@@ -3,6 +3,7 @@ package eu.brejcha.syncapp1
 
 import android.content.Context
 import android.net.Uri
+import android.provider.DocumentsContract
 import android.util.Log
 import androidx.documentfile.provider.DocumentFile
 import com.hierynomus.smbj.SMBClient
@@ -72,7 +73,12 @@ fun syncPathWithSmb(path: Path, context: Context, onProcessUpdate: (Int) -> Unit
 
     val settings = loadSettingsFromDb(context)
 
-    val localFiles = listLocalDirectory(context, path, settings.sharePath)
+    Log.d("SyncApp", "DocumentId: ${DocumentsContract.getTreeDocumentId(Uri.parse(path.id))}")
+
+    val pathId = DocumentsContract.getTreeDocumentId(Uri.parse(path.id)).replace("/", "_").replace(":", "_")
+    Log.d("SyncApp", "pathId: $pathId")
+
+    val localFiles = listLocalDirectory(context, path, "${settings.sharePath}/${pathId}")
 
     val config = SmbConfig.builder()
         .withTimeout(3000, TimeUnit.MILLISECONDS)
@@ -90,6 +96,18 @@ fun syncPathWithSmb(path: Path, context: Context, onProcessUpdate: (Int) -> Unit
         )
 
         val share = session.connectShare(settings.shareName) as DiskShare
+
+
+        if (!share.folderExists(settings.sharePath)) {
+            Log.d("SyncApp", "Creating directory ${settings.sharePath}")
+            share.mkdir(settings.sharePath)
+        }
+        if (!share.folderExists("${settings.sharePath}/${pathId}")) {
+            Log.d("SyncApp", "Creating directory ${settings.sharePath}/${pathId}")
+            share.mkdir("${settings.sharePath}/${pathId}")
+        }
+
+
         //listDirectory(share, "", out)
         localFiles.forEachIndexed { fileIdx, localFile ->
             Log.d("SyncApp", "Syncing file ${localFile.filePath}")
