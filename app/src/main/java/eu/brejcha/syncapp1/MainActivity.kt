@@ -43,7 +43,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.IconButton
@@ -51,6 +55,8 @@ import androidx.compose.material3.TextField
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import eu.brejcha.syncapp1.ui.theme.bannerColor
@@ -302,6 +308,7 @@ fun SettingsDialog(
     onDismiss: () -> Unit
 ) {
     var updatedSettings by remember { mutableStateOf(settings) }
+    var passwordVisible by remember { mutableStateOf(false) }
 
     Dialog(onDismissRequest = onDismiss) {
         Card {
@@ -331,11 +338,18 @@ fun SettingsDialog(
                     onValueChange = { updatedSettings = updatedSettings.copy(username = it) },
                     label = { Text("Username") }
                 )
-                TextField(
-                    value = updatedSettings.password,
-                    onValueChange = { updatedSettings = updatedSettings.copy(password = it) },
-                    label = { Text("Password") }
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    TextField(
+                        value = updatedSettings.password,
+                        onValueChange = { updatedSettings = updatedSettings.copy(password = it) },
+                        label = { Text("Password") },
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation()
+                    )
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(imageVector = if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                             contentDescription = if (passwordVisible) "Hide Password" else "Show Password")
+                    }
+                }
                 TextField(
                     value = updatedSettings.domain,
                     onValueChange = { updatedSettings = updatedSettings.copy(domain = it) },
